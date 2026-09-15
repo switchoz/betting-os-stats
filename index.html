@@ -3,120 +3,292 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Betting OS — верифицированная статистика</title>
+<title>Betting OS — верифицированный беттинг-аналитикс</title>
+<meta name="description" content="Верифицированная статистика Betting OS: суммарный PnL, винрейт, кумулятивный график, журнал ставок и методология полного цикла анализа.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2044%2044%22%3E%3Cpath%20d%3D%22M22%202.6%2038.1%2011.8v18.4L22%2039.4%205.9%2030.2V11.8Z%22%20fill%3D%22%230A0E14%22%20stroke%3D%22%2300E5A0%22%20stroke-width%3D%222%22/%3E%3Cpolyline%20points%3D%2212.5%2C28.5%2018.5%2C22%2024%2C25%2031.5%2C14.5%22%20fill%3D%22none%22%20stroke%3D%22%2300E5A0%22%20stroke-width%3D%222.4%22%20stroke-linecap%3D%22round%22/%3E%3Ccircle%20cx%3D%2231.5%22%20cy%3D%2214.5%22%20r%3D%222.2%22%20fill%3D%22%2300E5A0%22/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
-:root { --bg:#0d1117; --panel:#161b22; --border:#2b323b; --text:#e6edf3; --muted:#8b949e; --accent:#58a6ff; --pos:#3fb950; --neg:#f85149; }
+:root { --bg:#0A0E14; --panel:rgba(255,255,255,.035); --border:rgba(255,255,255,.06);
+  --text:#E6EDF3; --muted:#8B949E; --mint:#00E5A0; --red:#FF5C7A; --gold:#F5C96B; }
 * { box-sizing:border-box; }
-body { margin:0; background:var(--bg); color:var(--text); font:15px/1.6 -apple-system,"Segoe UI",Roboto,Arial,sans-serif; }
-.wrap { max-width:960px; margin:0 auto; padding:24px 16px 64px; }
-header { border-bottom:1px solid var(--border); padding:24px 0 16px; margin-bottom:24px; }
-h1 { font-size:22px; margin:0 0 6px; }
-h2 { font-size:17px; margin:32px 0 12px; }
-h3 { font-size:16px; margin:0 0 12px; }
-h4 { font-size:14px; margin:16px 0 8px; color:var(--muted); font-weight:600; }
-.muted { color:var(--muted); font-size:13px; }
-.disclaimer { color:var(--muted); font-size:12.5px; margin-top:8px; }
-.cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; }
-.card { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:14px 16px; }
-.card .v { font-size:22px; font-weight:700; }
-.card .l { color:var(--muted); font-size:12.5px; }
-.pos { color:var(--pos); } .neg { color:var(--neg); }
-.win { color:var(--pos); font-weight:600; } .loss { color:var(--neg); font-weight:600; }
-table { width:100%; border-collapse:collapse; background:var(--panel); border:1px solid var(--border); border-radius:10px; overflow:hidden; font-size:14px; }
-th,td { padding:8px 12px; text-align:left; border-bottom:1px solid var(--border); }
-th { color:var(--muted); font-weight:600; font-size:12.5px; text-transform:uppercase; letter-spacing:.04em; }
-tr:last-child td { border-bottom:none; }
-a { color:var(--accent); text-decoration:none; }
-canvas { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:12px; }
-.day { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:16px; margin-top:16px; }
-.spec { color:var(--muted); font-size:12px; }
-.note { color:var(--muted); font-size:13px; }
-ol.method { padding-left:0; list-style:none; counter-reset:none; }
-ol.method li { padding:6px 0; border-bottom:1px solid var(--border); font-size:14px; }
-ol.method li:last-child { border-bottom:none; }
-.step-n { display:inline-block; min-width:34px; color:var(--accent); font-weight:600; }
-footer { margin-top:40px; padding-top:16px; border-top:1px solid var(--border); color:var(--muted); font-size:12.5px; }
+html { scroll-behavior:smooth; scroll-padding-top:84px; }
+body { margin:0; background:var(--bg); color:var(--text);
+  font:15px/1.6 Inter,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased; }
+body::before { content:''; position:fixed; top:-160px; left:50%; transform:translateX(-50%);
+  width:960px; height:480px; pointer-events:none; z-index:0;
+  background:radial-gradient(ellipse at center, rgba(0,229,160,.07), transparent 65%); }
+.wrap { max-width:1080px; margin:0 auto; padding:0 20px 72px; position:relative; z-index:1; }
+a { color:var(--mint); text-decoration:none; }
+.pos { color:var(--mint); } .neg { color:var(--red); }
+.grade-a { color:var(--gold); font-weight:700; }
+.panel { background:var(--panel); border:1px solid var(--border); border-radius:16px;
+  backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+  padding:24px; margin-top:24px; box-shadow:0 8px 32px rgba(0,0,0,.25); }
+
+/* Шапка */
+.topbar { position:sticky; top:0; z-index:50; background:rgba(10,14,20,.78);
+  backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border); }
+.topbar-in { display:flex; align-items:center; justify-content:space-between;
+  padding-top:13px; padding-bottom:13px; }
+.brand { display:flex; align-items:center; gap:11px; color:var(--text); text-decoration:none; }
+.logo { width:34px; height:34px; display:block; }
+.brand-name { font-weight:800; font-size:14.5px; letter-spacing:.14em; }
+.brand-name b { color:var(--mint); }
+.brand-tag { display:none; }
+.nav { display:flex; gap:22px; }
+.nav a { color:var(--muted); text-decoration:none; font-size:13.5px; font-weight:600;
+  letter-spacing:.02em; transition:color .15s; }
+.nav a:hover { color:var(--text); }
+
+/* Hero */
+.hero { text-align:center; padding:48px 24px 34px; margin-top:28px; }
+.hero-eyebrow { color:var(--mint); font-size:12px; font-weight:700;
+  letter-spacing:.22em; text-transform:uppercase; }
+.hero-value { font-size:clamp(56px,13vw,92px); font-weight:800; line-height:1.05;
+  letter-spacing:-.03em; margin:12px 0 8px; font-variant-numeric:tabular-nums; }
+.hero-value.pos { color:var(--mint); text-shadow:0 0 44px rgba(0,229,160,.28); }
+.hero-value.neg { color:var(--red); text-shadow:0 0 44px rgba(255,92,122,.28); }
+.hero-sub { color:var(--muted); font-size:14px; }
+.kpis { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  gap:12px; margin-top:34px; }
+.kpi { background:rgba(255,255,255,.03); border:1px solid var(--border);
+  border-radius:12px; padding:14px 10px; }
+.kpi .v { font-size:20px; font-weight:700; font-variant-numeric:tabular-nums; }
+.kpi .l { color:var(--muted); font-size:11.5px; margin-top:3px; line-height:1.4; }
+
+/* Заголовки секций */
+.sec-title { font-size:13px; font-weight:700; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--muted); margin:46px 4px 4px;
+  display:flex; align-items:center; gap:12px; }
+.sec-title::after { content:''; flex:1; height:1px; background:var(--border); }
+.sec-lead { color:var(--muted); font-size:13.5px; margin:10px 4px 18px; }
+
+/* График */
+.chart-wrap { position:relative; height:280px; }
+
+/* Методология */
+.timeline { display:flex; gap:14px; overflow-x:auto; padding:4px 2px 14px;
+  scrollbar-width:thin; }
+.step { min-width:232px; max-width:232px; flex:none; background:var(--panel);
+  border:1px solid var(--border); border-radius:14px; padding:16px 16px 14px;
+  backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+  transition:border-color .15s; }
+.step:hover { border-color:rgba(0,229,160,.25); }
+.step summary { list-style:none; cursor:pointer; display:flex;
+  align-items:flex-start; gap:10px; }
+.step summary::-webkit-details-marker { display:none; }
+.step-n { display:inline-flex; align-items:center; justify-content:center;
+  min-width:30px; height:30px; padding:0 6px; border-radius:9px; flex:none;
+  background:rgba(0,229,160,.12); color:var(--mint);
+  font-weight:700; font-size:12.5px; font-variant-numeric:tabular-nums; }
+.step-name { font-weight:600; font-size:13.5px; line-height:1.4; padding-top:5px; }
+.step-desc { color:var(--muted); font-size:12.5px; line-height:1.55;
+  margin:12px 0 0; border-top:1px solid var(--border); padding-top:10px; }
+.muted-note { color:var(--muted); font-size:12.5px; margin:2px 4px 0; }
+
+/* Журнал */
+.day { padding:20px; }
+.day-head { display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+.day-date { font-weight:700; font-size:16px; letter-spacing:.01em; }
+.badge { display:inline-flex; align-items:center; padding:3px 13px;
+  border-radius:999px; font-weight:700; font-size:13.5px;
+  font-variant-numeric:tabular-nums; }
+.badge.pos { color:var(--mint); background:rgba(0,229,160,.12);
+  border:1px solid rgba(0,229,160,.28); }
+.badge.neg { color:var(--red); background:rgba(255,92,122,.10);
+  border:1px solid rgba(255,92,122,.28); }
+.day-meta { color:var(--muted); font-size:13px; margin-left:auto; }
+.day-meta b { color:var(--text); font-weight:600; }
+.day h4 { font-size:11.5px; text-transform:uppercase; letter-spacing:.12em;
+  color:var(--muted); font-weight:700; margin:20px 0 8px; }
+table.bets { width:100%; border-collapse:collapse; font-size:13.5px; }
+table.bets th { text-align:left; color:var(--muted); font-size:11px;
+  text-transform:uppercase; letter-spacing:.07em; font-weight:600;
+  padding:6px 10px; border-bottom:1px solid var(--border); }
+table.bets td { padding:8px 10px; border-bottom:1px solid rgba(255,255,255,.04);
+  vertical-align:top; }
+table.bets tr:last-child td { border-bottom:none; }
+.tag { display:inline-block; padding:2px 9px; border-radius:999px;
+  font-size:11px; font-weight:700; letter-spacing:.05em;
+  color:var(--muted); border:1px solid var(--border); }
+.tag.win { color:var(--mint); background:rgba(0,229,160,.12);
+  border-color:rgba(0,229,160,.25); }
+.tag.loss { color:var(--red); background:rgba(255,92,122,.12);
+  border-color:rgba(255,92,122,.25); }
+tr.spec td { opacity:.42; }
+.spec-tag { display:inline-block; margin-left:7px; padding:1px 7px;
+  border-radius:6px; border:1px solid var(--border); color:var(--muted);
+  font-size:10px; font-weight:700; letter-spacing:.1em; }
+.note { color:var(--muted); font-size:13px; margin:10px 0 0; }
+
+/* Футер */
+footer { margin-top:60px; border-top:1px solid var(--border); padding-top:24px;
+  color:var(--muted); font-size:12.5px; }
+.foot-top { display:flex; justify-content:space-between; align-items:center;
+  gap:16px; flex-wrap:wrap; margin-bottom:14px; }
+.foot-brand { color:var(--text); font-weight:700; letter-spacing:.1em;
+  font-size:13px; }
+.tg-btn { display:inline-flex; align-items:center; gap:8px; padding:9px 16px;
+  border-radius:12px; background:rgba(0,229,160,.10);
+  border:1px solid rgba(0,229,160,.25); color:var(--mint);
+  font-weight:600; font-size:13.5px; transition:background .15s; }
+.tg-btn:hover { background:rgba(0,229,160,.18); }
+.disc { line-height:1.75; margin:0; }
+
+@media (max-width:760px) {
+  .timeline { flex-direction:column; overflow:visible; }
+  .step { min-width:0; max-width:none; }
+  .day-meta { margin-left:0; width:100%; }
+  .hero { padding:36px 16px 26px; }
+}
 </style>
 </head>
 <body>
-<div class="wrap">
-<header>
-  <h1>Betting OS — верифицированная статистика</h1>
-  <div class="muted">Сгенерировано: 15.09.2026 16:28 · источник: reports/results_*.md (settlement)</div>
-  <div class="disclaimer">18+. Ставки на спорт связаны с риском. Материал носит информационный характер и не является финансовым советом. История результатов не гарантирует будущую доходность.</div>
+
+<header class="topbar">
+  <div class="wrap topbar-in">
+    <a class="brand" href="#stats">
+      <svg class="logo" viewBox="0 0 44 44" fill="none" aria-hidden="true"><path d="M22 2.6 38.1 11.8v18.4L22 39.4 5.9 30.2V11.8Z" stroke="#00E5A0" stroke-width="2" fill="rgba(0,229,160,.10)"/><polyline points="12.5,28.5 18.5,22 24,25 31.5,14.5" stroke="#00E5A0" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="31.5" cy="14.5" r="2.2" fill="#00E5A0"/></svg>
+      <span class="brand-name">BETTING <b>OS</b></span>
+    </a>
+    <nav class="nav">
+      <a href="#stats">Статистика</a>
+      <a href="#journal">Журнал</a>
+      <a href="#methodology">Методология</a>
+    </nav>
+  </div>
 </header>
 
-<h2>Сводка</h2>
-<div class="cards">
-  <div class="card"><div class="v neg">-2.88u</div><div class="l">Суммарный PnL</div></div>
-  <div class="card"><div class="v">57%</div><div class="l">Винрейт синглов (8W/6L)</div></div>
-  <div class="card"><div class="v">14%</div><div class="l">Винрейт экспрессов (1W/6L)</div></div>
-  <div class="card"><div class="v">2</div><div class="l">Дней в статистике</div></div>
-  <div class="card"><div class="v">2</div><div class="l">Серия дней без пропуска</div></div>
+<main class="wrap">
+
+<section class="panel hero" id="stats">
+  <div class="hero-eyebrow">Верифицированный беттинг-аналитикс</div>
+  <div class="hero-value pos">+0.00u</div>
+  <div class="hero-sub">Суммарный PnL &middot; на единицу ставки, плоская система</div>
+  <div class="kpis">
+    <div class="kpi"><div class="v">—</div><div class="l">ROI дня (среднее)</div></div>
+    <div class="kpi"><div class="v">—</div><div class="l">Винрейт синглов &middot; 0W / 0L</div></div>
+    <div class="kpi"><div class="v">—</div><div class="l">Винрейт экспрессов &middot; 0W / 0L</div></div>
+    <div class="kpi"><div class="v">0</div><div class="l">Дней без пропуска</div></div>
+    <div class="kpi"><div class="v">0</div><div class="l">Всего ставок</div></div>
+  </div>
+</section>
+
+<h2 class="sec-title" id="chart">Кумулятивный PnL</h2>
+<section class="panel"><div class="zero-start" style="margin:18px auto;max-width:1080px;padding:16px 20px;border:1px solid rgba(0,229,160,.35);border-radius:16px;background:rgba(0,229,160,.06);color:var(--mint);font-weight:600">Статистика обнулена · отсчёт с 15.09.2026 — день 1. Первая верифицированная сводка появится завтра утром после settlement.</div><div class="chart-wrap"><canvas id="pnlChart"></canvas></div></section>
+
+<h2 class="sec-title" id="methodology">Методология &middot; полный цикл анализа</h2>
+<p class="sec-lead">Каждый шаг считается выполненным только при наличии доказательства.
+Контролёр цикла выносит вердикт «ЦИКЛ ЗАВЕРШЁН» — без него анализ дня недействителен.
+Нажмите на шаг, чтобы раскрыть критерий выполнения.</p>
+<div class="timeline">
+<details class="step"><summary><span class="step-n">1</span><span class="step-name">Конвертация + конвейер</span></summary><p class="step-desc">`C:/analbet/freshline/tenisi_&lt;дата&gt;.txt` создан (вне репо; конвейер архивирует в `data/lines/`); `reports/daily_&lt;дата&gt;.md` существует; тиры и soft-gate извлечены</p></details>
+<details class="step"><summary><span class="step-n">2</span><span class="step-name">Покрытие 100% матчей</span></summary><p class="step-desc">Список всех матчей линии сверен со списком разобранных; каждый матч имеет град <span class="grade-a">A</span>/B/C или честный DATA_GAP с причиной; итоговая таблица градации в шорт-листе</p></details>
+<details class="step"><summary><span class="step-n">3</span><span class="step-name">Сверка каждой цены</span></summary><p class="step-desc">Каждая рекомендованная нога имеет цену, процитированную из сырой линии (не «~», не из шапки без блока)</p></details>
+<details class="step"><summary><span class="step-n">4</span><span class="step-name">Отбор с матрицей S1–S8</span></summary><p class="step-desc">По каждой ноге портфеля — град <span class="grade-a">A</span>/B/C с перечнем стратегий ЗА</p></details>
+<details class="step"><summary><span class="step-n">5</span><span class="step-name">Двойная независимая ревизия</span></summary><p class="step-desc">По каждой ноге — два вердикта (новости/составы + статистика) с итогом ПОДТВЕРЖДЕНА/ОСЛАБЛЕНА/СЛОМАНА; СЛОМАНОЕ вырезано</p></details>
+<details class="step"><summary><span class="step-n">5.5</span><span class="step-name">Патруль свежих факторов</span></summary><p class="step-desc">Раздел патруля в шорт-листе: по каждому вечернему матчу — «новых факторов нет» или фактор с направлением; сломы портфеля пересмотрены</p></details>
+<details class="step"><summary><span class="step-n">5.6</span><span class="step-name">Проверка переносов/дублей</span></summary><p class="step-desc">Скриптовая сверка матчей линии с BSD/расписанием; 0 флагов или каждый флаг разобран</p></details>
+<details class="step"><summary><span class="step-n">6</span><span class="step-name">Цена против рынка</span></summary><p class="step-desc">По каждой ноге: TENNISI vs консенсус; анти-value вырезано, флаги зафиксированы</p></details>
+<details class="step"><summary><span class="step-n">7</span><span class="step-name">Нестандартные пулы</span></summary><p class="step-desc">MONOLITH_RESEARCH разобран; комбо-блоки помечены (исключены/разобраны); авторы голов — не ведутся (правило 30)</p></details>
+<details class="step"><summary><span class="step-n">8</span><span class="step-name">Чек стартовых составов</span></summary><p class="step-desc">По каждой вечерней ноге — результат чека или статус CONFLICT с запланированным решением (cron); сломанное составами корректируется в канал</p></details>
+<details class="step"><summary><span class="step-n">9</span><span class="step-name">Портфельная сверка</span></summary><p class="step-desc">Пересечения ног между синглами/экспрессами найдены и раскрыты; суммарные доли посчитаны</p></details>
+<details class="step"><summary><span class="step-n">10</span><span class="step-name">Финальный план</span></summary><p class="step-desc">Одно сообщение: АКТИВНО / УСЛОВНО / ОТМЕНЕНО с причинами</p></details>
+<details class="step"><summary><span class="step-n">[6.5]</span><span class="step-name">Settlement</span></summary><p class="step-desc">`reports/results_&lt;дата&gt;.md` с PnL на следующее утро</p></details>
+<details class="step"><summary><span class="step-n">[6.6]</span><span class="step-name">Калибровка</span></summary><p class="step-desc">Секция «калибровка» в results: факт vs модельные p</p></details>
+<details class="step"><summary><span class="step-n">11</span><span class="step-name">Публикации</span></summary><p class="step-desc">Каждый пост с дисклеймером (SHADOW/PAPER + время линии); при подтверждении слома — корректировка в канал до матча; архив текста поста в outbox_auto/channel_posts/</p></details>
 </div>
+<p class="muted-note">Полный чек-лист: docs/CYCLE_CHECKLIST.md &middot; 15 шагов цикла</p>
 
-<h2>PnL по дням (кумулятивно)</h2>
-<canvas id="pnlChart" height="120"></canvas>
+<h2 class="sec-title" id="journal">Журнал по дням</h2>
 
-<h2>Итоги по дням</h2>
-<table><thead><tr><th>Дата</th><th>PnL</th><th>Синглы W/L</th><th>Экспрессы W/L</th><th></th></tr></thead>
-<tbody>
-<tr><td>13.09.2026</td><td class="neg">-2.64u</td><td>3/2</td><td>0/3</td><td><a href="#day-2026-09-13">детали ↓</a></td></tr><tr><td>14.09.2026</td><td class="neg">-0.24u</td><td>5/4</td><td>1/3</td><td><a href="#day-2026-09-14">детали ↓</a></td></tr>
-</tbody></table>
-
-<h2>Детали по дням</h2>
-<section class="day" id="day-2026-09-13"><h3>13.09.2026 — <span class="neg">-2.64u</span></h3><h4>Синглы</h4><table><thead><tr><th>Ставка</th><th>Кэф</th><th>Исход</th><th>PnL</th></tr></thead><tbody><tr><td>БАТЭ ИТБ 1.5 — Нафтан</td><td>1.52</td><td class="win">WIN</td><td><span class="pos">+0.52</span></td></tr><tr><td>Неом ТМ 4.0 — Аль-Фатех</td><td>1.25</td><td class="loss">LOSS</td><td><span class="neg">−1.00</span></td></tr><tr><td>Ювентус ИТМ 2.5 — Сассуоло</td><td>1.32</td><td class="win">WIN</td><td><span class="pos">+0.32</span></td></tr><tr><td>Амедспор П1 — Башакшехир</td><td>2.52</td><td class="win">WIN</td><td><span class="pos">+1.52</span></td></tr><tr><td>Эгнатия П2 — Эльбасани</td><td>2.23</td><td class="loss">LOSS</td><td><span class="neg">−1.00</span></td></tr><tr><td><s>ПАОК ТБ 2.75 — Арис (спекулятивная)</s> <span class="spec">спек-пул</span></td><td>1.94</td><td class="loss">LOSS</td><td><span class="neg">−1.00</span></td></tr></tbody></table><h4>Экспрессы</h4><table><thead><tr><th>Ставка</th><th>Кэф</th><th>Исход</th><th>PnL</th></tr></thead><tbody><tr><td>БАТЭ ИТБ 1.5 × Краснодар П1</td><td>1.90</td><td class="loss">LOSS</td><td>—</td></tr><tr><td>Неом ТМ 4.0 × Ланс П2</td><td>2.10</td><td class="loss">LOSS</td><td>—</td></tr><tr><td>Краснодар П1 × АЕК П2 × Неом ТМ 4.0</td><td>2.11</td><td class="loss">LOSS</td><td>—</td></tr></tbody></table></section><section class="day" id="day-2026-09-14"><h3>14.09.2026 — <span class="neg">-0.24u</span></h3><h4>Экспрессы (0.5u каждый)</h4><table><thead><tr><th>Ставка</th><th>Кэф</th><th>Исход</th><th>PnL</th></tr></thead><tbody><tr><td>№1: Удинезе +3.5 × Ремо +2.5 × Бетис +1.5</td><td>1.86</td><td class="win">WIN</td><td><span class="pos">+0.43</span></td></tr><tr><td>№2: Брага ИТМ 2.5 × Кайсериспор П1</td><td>2.04</td><td class="loss">LOSS</td><td><span class="neg">−0.50</span></td></tr></tbody></table><h4>Синглы</h4><table><thead><tr><th>Ставка</th><th>Кэф</th><th>Исход</th><th>PnL</th></tr></thead><tbody><tr><td>Бетис +1.5</td><td>1.29</td><td class="win">WIN</td><td><span class="pos">+0.29</span></td></tr><tr><td>Брага ИТМ 2.5</td><td>1.44</td><td class="win">WIN</td><td><span class="pos">+0.44</span></td></tr><tr><td>Маккаби Хайфа П2</td><td>1.86</td><td class="win">WIN</td><td><span class="pos">+0.86</span></td></tr><tr><td>Спартак Кострома П1</td><td>1.70</td><td class="win">WIN</td><td><span class="pos">+0.35</span></td></tr><tr><td>Вараждин П2</td><td>2.11</td><td class="loss">LOSS</td><td><span class="neg">−0.50</span></td></tr><tr><td>Саттон П2 (спек)</td><td>2.45</td><td class="loss">LOSS</td><td><span class="neg">−0.25</span></td></tr></tbody></table><h4>ХОККЕЙ (шорт-лист v2h) — итог −1.36u флэтом</h4><table><thead><tr><th>Ставка</th><th>Кэф</th><th>Исход</th><th>PnL</th></tr></thead><tbody><tr><td>Югра П2 (Норильск 1:2 Б)</td><td>1.64</td><td class="win">WIN</td><td><span class="pos">+0.64</span></td></tr><tr><td>Динамо-Шинник −1.5 (2:1 ОТ, маржа 1)</td><td>1.87</td><td class="loss">LOSS</td><td><span class="neg">−1.00</span></td></tr><tr><td>ТМ 4.5 ОК—Калуга (3:2 ОТ, 5 шайб с ОТ)</td><td>1.99</td><td class="loss">LOSS</td><td><span class="neg">−1.00</span></td></tr><tr><td>Экспрессы 3.07 и 6.10</td><td>3.07/6.10</td><td class="loss">LOSS</td><td>—</td></tr></tbody></table></section>
-
-<h2>Методология</h2>
-<ol class="method">
-<li><span class="step-n">1</span> Конвертация + конвейер</li>
-<li><span class="step-n">2</span> Покрытие 100% матчей</li>
-<li><span class="step-n">3</span> Сверка каждой цены</li>
-<li><span class="step-n">4</span> Отбор с матрицей S1–S8</li>
-<li><span class="step-n">5</span> Двойная независимая ревизия</li>
-<li><span class="step-n">5.5</span> Патруль свежих факторов</li>
-<li><span class="step-n">5.6</span> Проверка переносов/дублей</li>
-<li><span class="step-n">6</span> Цена против рынка</li>
-<li><span class="step-n">7</span> Нестандартные пулы</li>
-<li><span class="step-n">8</span> Чек стартовых составов</li>
-<li><span class="step-n">9</span> Портфельная сверка</li>
-<li><span class="step-n">10</span> Финальный план</li>
-<li><span class="step-n">[6.5]</span> Settlement</li>
-<li><span class="step-n">[6.6]</span> Калибровка</li>
-<li><span class="step-n">11</span> Публикации</li>
-</ol>
-<p class="muted">Полный чек-лист: docs/CYCLE_CHECKLIST.md. Каждый шаг считается выполненным только при наличии доказательства.</p>
 
 <footer>
-  Betting OS · верифицированная статистика · 18+ · не финансовый совет.
-  Страница генерируется автоматически из ежедневных отчётов settlement; зачёркнутые ставки — спекулятивный пул, не входит в винрейт.
+  <div class="foot-top">
+    <span class="foot-brand">&copy; BETTING OS</span>
+    <a class="tg-btn" href="https://t.me/" target="_blank" rel="noopener">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.9 4.6 3.3 11.8c-.9.4-.9 1.6.1 1.9l4.6 1.5 1.8 5.6c.3.8 1.2 1 1.8.4l2.6-2.5 4.7 3.5c.7.5 1.7.1 1.9-.8l3-14.9c.2-1-.8-1.8-1.9-1.5zM8.5 14.9l9.7-7.7c.2-.2.5.1.3.3l-8 7.3-.3 3-1.7-2.9z"/></svg>
+      Telegram-канал
+    </a>
+  </div>
+  <p class="disc">18+. Ставки на спорт связаны с риском. Материал носит аналитический характер
+  и не является финансовым советом. История результатов не гарантирует будущую доходность.
+  Конвейер работает в режиме SHADOW/PAPER: цены приводятся по линии на момент анализа —
+  пересверяйте перед ставкой. Зачёркнутые ставки (SPEC) — спекулятивный пул, в винрейт не входят.
+  Страница генерируется автоматически из ежедневных отчётов settlement
+  (reports/results_*.md) &middot; 15.09.2026 17:02.</p>
 </footer>
-</div>
+
+</main>
 
 <script>
-const ctx = document.getElementById('pnlChart');
-new Chart(ctx, {
-  type: 'line',
-  data: {
-    labels: ['13.09', '14.09'],
-    datasets: [{
-      label: 'Кумулятивный PnL (u)',
-      data: [-2.64, -2.88],
-      borderColor: '#58a6ff',
-      backgroundColor: 'rgba(88,166,255,0.12)',
-      fill: true, tension: 0.25, pointRadius: 4
-    }]
-  },
-  options: {
-    responsive: true,
-    plugins: { legend: { labels: { color: '#e6edf3' } } },
-    scales: {
-      x: { ticks: { color: '#8b949e' }, grid: { color: '#2b323b' } },
-      y: { ticks: { color: '#8b949e' }, grid: { color: '#2b323b' } }
+(function () {
+  var accent = '#00E5A0';
+  var el = document.getElementById('pnlChart');
+  if (!el || typeof Chart === 'undefined') return;
+  var ctx = el.getContext('2d');
+  var grad = ctx.createLinearGradient(0, 0, 0, 280);
+  grad.addColorStop(0, accent + '40');
+  grad.addColorStop(1, accent + '00');
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [{
+        label: 'Кумулятивный PnL (u)',
+        data: [],
+        borderColor: accent,
+        backgroundColor: grad,
+        fill: true,
+        tension: 0.35,
+        borderWidth: 2.5,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        pointBackgroundColor: accent,
+        pointBorderColor: '#0A0E14',
+        pointBorderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(10,14,20,.96)',
+          borderColor: 'rgba(255,255,255,.08)',
+          borderWidth: 1,
+          titleColor: '#8B949E',
+          bodyColor: '#E6EDF3',
+          padding: 12,
+          cornerRadius: 10,
+          displayColors: false,
+          callbacks: {
+            label: function (c) {
+              var v = c.parsed.y;
+              return 'PnL: ' + (v > 0 ? '+' : v < 0 ? '\u2212' : '') +
+                     Math.abs(v).toFixed(2) + 'u';
+            }
+          }
+        }
+      },
+      scales: {
+        x: { ticks: { color: '#8B949E' },
+             grid: { color: 'rgba(255,255,255,.04)' },
+             border: { color: 'rgba(255,255,255,.08)' } },
+        y: { ticks: { color: '#8B949E' },
+             grid: { color: 'rgba(255,255,255,.04)' },
+             border: { color: 'rgba(255,255,255,.08)' } }
+      }
     }
-  }
-});
+  });
+})();
 </script>
 </body>
 </html>
