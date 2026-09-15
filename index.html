@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Betting OS — верифицированная статистика</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root { --bg:#0d1117; --panel:#161b22; --border:#2b323b; --text:#e6edf3; --muted:#8b949e; --accent:#58a6ff; --pos:#3fb950; --neg:#f85149; }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--text); font:15px/1.6 -apple-system,"Segoe UI",Roboto,Arial,sans-serif; }
+.wrap { max-width:960px; margin:0 auto; padding:24px 16px 64px; }
+header { border-bottom:1px solid var(--border); padding:24px 0 16px; margin-bottom:24px; }
+h1 { font-size:22px; margin:0 0 6px; }
+h2 { font-size:17px; margin:32px 0 12px; }
+h3 { font-size:16px; margin:0 0 12px; }
+h4 { font-size:14px; margin:16px 0 8px; color:var(--muted); font-weight:600; }
+.muted { color:var(--muted); font-size:13px; }
+.disclaimer { color:var(--muted); font-size:12.5px; margin-top:8px; }
+.cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; }
+.card { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:14px 16px; }
+.card .v { font-size:22px; font-weight:700; }
+.card .l { color:var(--muted); font-size:12.5px; }
+.pos { color:var(--pos); } .neg { color:var(--neg); }
+.win { color:var(--pos); font-weight:600; } .loss { color:var(--neg); font-weight:600; }
+table { width:100%; border-collapse:collapse; background:var(--panel); border:1px solid var(--border); border-radius:10px; overflow:hidden; font-size:14px; }
+th,td { padding:8px 12px; text-align:left; border-bottom:1px solid var(--border); }
+th { color:var(--muted); font-weight:600; font-size:12.5px; text-transform:uppercase; letter-spacing:.04em; }
+tr:last-child td { border-bottom:none; }
+a { color:var(--accent); text-decoration:none; }
+canvas { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:12px; }
+.day { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:16px; margin-top:16px; }
+.spec { color:var(--muted); font-size:12px; }
+.note { color:var(--muted); font-size:13px; }
+ol.method { padding-left:0; list-style:none; counter-reset:none; }
+ol.method li { padding:6px 0; border-bottom:1px solid var(--border); font-size:14px; }
+ol.method li:last-child { border-bottom:none; }
+.step-n { display:inline-block; min-width:34px; color:var(--accent); font-weight:600; }
+footer { margin-top:40px; padding-top:16px; border-top:1px solid var(--border); color:var(--muted); font-size:12.5px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Betting OS — верифицированная статистика</h1>
+  <div class="muted">Сгенерировано: 15.09.2026 16:28 · источник: reports/results_*.md (settlement)</div>
+  <div class="disclaimer">18+. Ставки на спорт связаны с риском. Материал носит информационный характер и не является финансовым советом. История результатов не гарантирует будущую доходность.</div>
+</header>
+
+<h2>Сводка</h2>
+<div class="cards">
+  <div class="card"><div class="v neg">-2.88u</div><div class="l">Суммарный PnL</div></div>
+  <div class="card"><div class="v">57%</div><div class="l">Винрейт синглов (8W/6L)</div></div>
+  <div class="card"><div class="v">14%</div><div class="l">Винрейт экспрессов (1W/6L)</div></div>
+  <div class="card"><div class="v">2</div><div class="l">Дней в статистике</div></div>
+  <div class="card"><div class="v">2</div><div class="l">Серия дней без пропуска</div></div>
+</div>
+
+<h2>PnL по дням (кумулятивно)</h2>
+<canvas id="pnlChart" height="120"></canvas>
+
+<h2>Итоги по дням</h2>
+<table><thead><tr><th>Дата</th><th>PnL</th><th>Синглы W/L</th><th>Экспрессы W/L</th><th></th></tr></thead>
+<tbody>
+<tr><td>13.09.2026</td><td class="neg">-2.64u</td><td>3/2</td><td>0/3</td><td><a href="#day-2026-09-13">детали ↓</a></td></tr><tr><td>14.09.2026</td><td class="neg">-0.24u</td><td>5/4</td><td>1/3</td><td><a href="#day-2026-09-14">детали ↓</a></td></tr>
+</tbody></table>
+
+<h2>Детали по дням</h2>
+<section class="day" id="day-2026-09-13"><h3>13.09.2026 — <span class="neg">-2.64u</span></h3><h4>Синглы</h4><table><thead><tr><th>Ставка</th><th>Кэф</th><th>Исход</th><th>PnL</th></tr></thead><tbody><tr><td>БАТЭ ИТБ 1.5 — Нафтан</td><td>1.52</td><td class="win">WIN</td><td><span class="pos">+0.52</span></td></tr><tr><td>Неом ТМ 4.0 — Аль-Фатех</td><td>1.25</td><td class="loss">LOSS</td><td><span class="neg">−1.00</span></td></tr><tr><td>Ювентус ИТМ 2.5 — Сассуоло</td><td>1.32</td><td class="win">WIN</td><td><span class="pos">+0.32</span></td></tr><tr><td>Амедспор П1 — Башакшехир</td><td>2.52</td><td class="win">WIN</td><td><span class="pos">+1.52</span></td></tr><tr><td>Эгнатия П2 — Эльбасани</td><td>2.23</td><td class="loss">LOSS</td><td><span class="neg">−1.00</span></td></tr><tr><td><s>ПАОК ТБ 2.75 — Арис (спекулятивная)</s> <span class="spec">спек-пул</span></td><td>1.94</td><td class="loss">LOSS</td><td><span class="neg">−1.00</span></td></tr></tbody></table><h4>Экспрессы</h4><table><thead><tr><th>Ставка</th><th>Кэф</th><th>Исход</th><th>PnL</th></tr></thead><tbody><tr><td>БАТЭ ИТБ 1.5 × Краснодар П1</td><td>1.90</td><td class="loss">LOSS</td><td>—</td></tr><tr><td>Неом ТМ 4.0 × Ланс П2</td><td>2.10</td><td class="loss">LOSS</td><td>—</td></tr><tr><td>Краснодар П1 × АЕК П2 × Неом ТМ 4.0</td><td>2.11</td><td class="loss">LOSS</td><td>—</td></tr></tbody></table></section><section class="day" id="day-2026-09-14"><h3>14.09.2026 — <span class="neg">-0.24u</span></h3><h4>Экспрессы (0.5u каждый)</h4><table><thead><tr><th>Ставка</th><th>Кэф</th><th>Исход</th><th>PnL</th></tr></thead><tbody><tr><td>№1: Удинезе +3.5 × Ремо +2.5 × Бетис +1.5</td><td>1.86</td><td class="win">WIN</td><td><span class="pos">+0.43</span></td></tr><tr><td>№2: Брага ИТМ 2.5 × Кайсериспор П1</td><td>2.04</td><td class="loss">LOSS</td><td><span class="neg">−0.50</span></td></tr></tbody></table><h4>Синглы</h4><table><thead><tr><th>Ставка</th><th>Кэф</th><th>Исход</th><th>PnL</th></tr></thead><tbody><tr><td>Бетис +1.5</td><td>1.29</td><td class="win">WIN</td><td><span class="pos">+0.29</span></td></tr><tr><td>Брага ИТМ 2.5</td><td>1.44</td><td class="win">WIN</td><td><span class="pos">+0.44</span></td></tr><tr><td>Маккаби Хайфа П2</td><td>1.86</td><td class="win">WIN</td><td><span class="pos">+0.86</span></td></tr><tr><td>Спартак Кострома П1</td><td>1.70</td><td class="win">WIN</td><td><span class="pos">+0.35</span></td></tr><tr><td>Вараждин П2</td><td>2.11</td><td class="loss">LOSS</td><td><span class="neg">−0.50</span></td></tr><tr><td>Саттон П2 (спек)</td><td>2.45</td><td class="loss">LOSS</td><td><span class="neg">−0.25</span></td></tr></tbody></table><h4>ХОККЕЙ (шорт-лист v2h) — итог −1.36u флэтом</h4><table><thead><tr><th>Ставка</th><th>Кэф</th><th>Исход</th><th>PnL</th></tr></thead><tbody><tr><td>Югра П2 (Норильск 1:2 Б)</td><td>1.64</td><td class="win">WIN</td><td><span class="pos">+0.64</span></td></tr><tr><td>Динамо-Шинник −1.5 (2:1 ОТ, маржа 1)</td><td>1.87</td><td class="loss">LOSS</td><td><span class="neg">−1.00</span></td></tr><tr><td>ТМ 4.5 ОК—Калуга (3:2 ОТ, 5 шайб с ОТ)</td><td>1.99</td><td class="loss">LOSS</td><td><span class="neg">−1.00</span></td></tr><tr><td>Экспрессы 3.07 и 6.10</td><td>3.07/6.10</td><td class="loss">LOSS</td><td>—</td></tr></tbody></table></section>
+
+<h2>Методология</h2>
+<ol class="method">
+<li><span class="step-n">1</span> Конвертация + конвейер</li>
+<li><span class="step-n">2</span> Покрытие 100% матчей</li>
+<li><span class="step-n">3</span> Сверка каждой цены</li>
+<li><span class="step-n">4</span> Отбор с матрицей S1–S8</li>
+<li><span class="step-n">5</span> Двойная независимая ревизия</li>
+<li><span class="step-n">5.5</span> Патруль свежих факторов</li>
+<li><span class="step-n">5.6</span> Проверка переносов/дублей</li>
+<li><span class="step-n">6</span> Цена против рынка</li>
+<li><span class="step-n">7</span> Нестандартные пулы</li>
+<li><span class="step-n">8</span> Чек стартовых составов</li>
+<li><span class="step-n">9</span> Портфельная сверка</li>
+<li><span class="step-n">10</span> Финальный план</li>
+<li><span class="step-n">[6.5]</span> Settlement</li>
+<li><span class="step-n">[6.6]</span> Калибровка</li>
+<li><span class="step-n">11</span> Публикации</li>
+</ol>
+<p class="muted">Полный чек-лист: docs/CYCLE_CHECKLIST.md. Каждый шаг считается выполненным только при наличии доказательства.</p>
+
+<footer>
+  Betting OS · верифицированная статистика · 18+ · не финансовый совет.
+  Страница генерируется автоматически из ежедневных отчётов settlement; зачёркнутые ставки — спекулятивный пул, не входит в винрейт.
+</footer>
+</div>
+
+<script>
+const ctx = document.getElementById('pnlChart');
+new Chart(ctx, {
+  type: 'line',
+  data: {
+    labels: ['13.09', '14.09'],
+    datasets: [{
+      label: 'Кумулятивный PnL (u)',
+      data: [-2.64, -2.88],
+      borderColor: '#58a6ff',
+      backgroundColor: 'rgba(88,166,255,0.12)',
+      fill: true, tension: 0.25, pointRadius: 4
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { labels: { color: '#e6edf3' } } },
+    scales: {
+      x: { ticks: { color: '#8b949e' }, grid: { color: '#2b323b' } },
+      y: { ticks: { color: '#8b949e' }, grid: { color: '#2b323b' } }
+    }
+  }
+});
+</script>
+</body>
+</html>
